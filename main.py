@@ -27,6 +27,18 @@ def pergunta_dificuldade():
     else:
       dificuldade = raw_input('> Opção inválida, tente novamente.\n')
 
+def pergunta_numero_tentativas():
+  """Pergunta ao usuário o número de tentativas erradas que ele pode fazer antes de perder."""
+  resposta = raw_input('> Quantas tentativas você precisa (número maior que zero)?:\n')
+  while True:
+    try:
+      numero_tentativas = int(resposta)
+      if numero_tentativas <= 0:
+        raise ValueError()
+      return numero_tentativas
+    except ValueError:
+      resposta = raw_input('> Opção inválida, tente novamente.\n')
+
 def obtem_frase_e_respostas(dificuldade):
   """Obtém a frase e a lista de respostas para a dificuldade informada.
 
@@ -39,48 +51,49 @@ def obtem_frase_e_respostas(dificuldade):
   """
   return todas_frases[dificuldade].format(lacuna=lacuna), todas_respostas[dificuldade]
 
-def pergunta_resposta(frase, resposta):
+def pergunta_resposta(frase, resposta, numero_tentativas):
   """Pergunta ao usuário a resposta para a primeira lacuna da frase.
 
   Args:
         frase (str): Frase que será exibida para o usuário.
         resposta (str): Resposta correta.
+        numero_tentativas (int): Número de tentativas erradas que o usuário pode fazer antes de perder.
 
   Returns:
-        bool: True caso o número de tentativas tiver sido esgotado.
+        int: Número de tentativas restantes.
         str: Frase com a lacuna substituida pela resposta.
   """
   nova_frase = frase.replace(lacuna, lacuna_selecionada, 1)
   print("\n***\n\n" + nova_frase)
-  tentativas = 3
-  while tentativas > 0:
+  while numero_tentativas > 0:
     resposta_usuario = raw_input('\n> Qual o conteúdo da lacuna selecionada?\n')
     if resposta_usuario.lower() == resposta.lower():
       nova_frase = nova_frase.replace(lacuna_selecionada, resposta)
       print('👍   Muito bem, você acertou!')
-      return False, nova_frase
+      return numero_tentativas, nova_frase
     else:
       print('👎   Sua resposta está incorreta, tente novamente.')
-      tentativas -= 1
-  print('Número de tentativas esgotado! ☹ ☹ ☹️')
-  return True, frase
+      numero_tentativas -= 1
+  return numero_tentativas, frase
 
 
-def inicia_jogo(dificuldade):
+def inicia_jogo(dificuldade, numero_tentativas):
   """Inicia o jogo com a dificuldade informada.
 
   Args:
         dificuldade (int): Indice da dificuldade selecionada pelo usuário.
+        numero_tentativas (int): Número de tentativas erradas que o usuário pode fazer antes de perder.
   """
   frase, respostas = obtem_frase_e_respostas(dificuldade)
 
   for resposta in respostas:
-    tentativas_esgotadas, frase = pergunta_resposta(frase, resposta)
-    if tentativas_esgotadas:
+    numero_tentativas, frase = pergunta_resposta(frase, resposta, numero_tentativas)
+    if numero_tentativas <= 0:
+      print('Número de tentativas esgotado! 😣 😣 😣')
       return
 
   print('\n***\n\nVocê acertou tudo!   😀 😀 😀\nA frase completa é: {0}'.format(frase))
 
-
 dificuldade = pergunta_dificuldade()
-inicia_jogo(dificuldade)
+numero_tentativas = pergunta_numero_tentativas()
+inicia_jogo(dificuldade, numero_tentativas)
